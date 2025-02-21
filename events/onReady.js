@@ -1,0 +1,82 @@
+import { Events, Collection, REST, Routes, PresenceUpdateStatus} from 'discord.js';
+import path from'path';
+import fs from 'fs';
+import 'dotenv/config'
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { pathToFileURL } from 'url';
+import Logger from '../utils/logs.js'
+const lg = new Logger('Bot')
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const token = process.env.TOKEN;
+const clientId = process.env.CLIENT_ID;
+const guildId = process.env.GUILD_ID;
+
+export default {
+    name: Events.ClientReady,
+    once: true,
+    async execute(client) {
+        client.commands = new Collection();
+        const memberCount = client.guilds.cache.get("986606248902414396").memberCount
+         
+        client.user.setPresence({ activities: [{ name: `${memberCount} учасників`, type: 3 }], status: PresenceUpdateStatus.DoNotDisturb });
+        const foldersPath = path.join(__dirname, '..', 'commands');
+
+        // Рекурсивна функція для збору всіх команд
+        async function loadCommands(folderPath) {
+            const entries = fs.readdirSync(folderPath, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = path.join(folderPath, entry.name);
+        
+                // Якщо це папка, запускаємо рекурсію
+                if (entry.isDirectory()) {
+                    await loadCommands(fullPath);
+                } else if (entry.isFile() && entry.name.endsWith('.js')) {
+                    // Перетворюємо шлях до файлу на file:// URL
+                    const fileURL = pathToFileURL(fullPath).href;
+        
+                    // Якщо це файл команди, підключаємо його
+                     await import(fileURL)  // Використовуємо file:// URL
+                        .then(command => {
+                            if ('data' in command && 'execute' in command) {
+                                client.commands.set(command.data.name, command);
+                                lg.success(`Команда ${command.data.name} завантажена з файлу ${fullPath}`);
+                            } else {
+                                lg.error(`[WARNING] The command at ${fullPath} is missing a required "data" or "execute" property.`);
+                            }
+                        })
+                        .catch(error => lg.error(`[ERROR] Не вдалося завантажити команду з файлу ${fullPath}:`, error));
+
+                }
+            }
+        }
+
+        // Запускаємо рекурсивний обхід команд
+        await loadCommands(foldersPath);
+
+        lg.success('Усі команди успішно завантажені!');
+
+        // Реєстрація команд на сервері
+        const commands = client.commands.map(command => command.data.toJSON());
+
+        const rest = new REST({ version: '10' }).setToken(token);
+
+        lg.info(`Команди, що реєструються: ${commands.map(command => command.name).join(', ')}`);
+
+        try {
+            lg.info('Реєстрація команд...');
+            await rest.put(
+                Routes.applicationGuildCommands(clientId, guildId), {
+                    body: commands,
+                },
+            );
+            lg.success('Локальні команди успішно зареєстровані!');
+        } catch (error) {
+            lg.error('Помилка при реєстрації команд:', error);
+        }
+
+    },
+};
