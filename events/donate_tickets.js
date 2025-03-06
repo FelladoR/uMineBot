@@ -223,32 +223,37 @@ export default{
 
     if(interaction.isModalSubmit()){
         if (interaction.customId === 'modalMenu_title') {
-            const player_nickname = interaction.fields.getTextInputValue('player_nickname');
-            let server_money_emount = null;
-            const selected_donate = interaction.user.selected_donate;
-            
-            // Перевіряємо наявність поля server_money_emount
-            if(selected_donate=="server_money") {
-                if (interaction.fields.getTextInputValue('server_money_emount')) {
-                    server_money_emount = interaction.fields.getTextInputValue('server_money_emount');
-                    const isNumber = isNaN(server_money_emount);
+            try{
+                const player_nickname = interaction.fields.getTextInputValue('player_nickname');
+                let server_money_emount = null;
+                const selected_donate = interaction.user.selected_donate;
+                
+                // Перевіряємо наявність поля server_money_emount
+                if(selected_donate=="server_money") {
+                    if (interaction.fields.getTextInputValue('server_money_emount')) {
+                        server_money_emount = interaction.fields.getTextInputValue('server_money_emount');
+                        const isNumber = isNaN(server_money_emount);
 
-                    if(isNumber === true ) {
-                        await interaction.reply({content: '**❌Будь ласка, вкажіть кількість карбованців як число**', flags: MessageFlags.Ephemeral})
+                        if(isNumber === true ) {
+                            await interaction.reply({content: '**❌Будь ласка, вкажіть кількість карбованців як число**', flags: MessageFlags.Ephemeral})
+                        }
+
+                    }else if(!interaction.fields.getTextInputValue('server_money_emount')){
+                        server_money_emount = null
                     }
-
-                }else if(!interaction.fields.getTextInputValue('server_money_emount')){
-                    server_money_emount = null
                 }
+                
+                const ticket_channel = await open_ticket(player_nickname, server_money_emount)
+                
+                if (ticket_channel) {
+                    await send_embed_to_ticket(ticket_channel, player_nickname, server_money_emount)
+                } else {
+                    lg.warn('Не вдалось знайти канал тікету')
+                }
+            }catch(error) {
+                lg.error(error)
             }
             
-            const ticket_channel = await open_ticket(player_nickname, server_money_emount)
-            
-            if (ticket_channel) {
-                await send_embed_to_ticket(ticket_channel, player_nickname, server_money_emount)
-            } else {
-                lg.warn('Не вдалось знайти канал тікету')
-            }
         }
         
     }
@@ -279,7 +284,7 @@ export default{
                     )
                     .setFooter({text: `З повагою, Адміністрація сервера. ❤️`})
                     await ticket_channel.send({ embeds: [embed], components: admin_buttons})//content: "<@&986676059237916693>",
-                    ticketData =  await new Ticket({ _id: ticket_channel.id, author_id: interaction.user.id, player_minecraft_nickname: player_nickname , donate: selected_donate, role_id: userData.get(interaction.user.id).roleId})
+                    const ticketData =  await new Ticket({ _id: ticket_channel.id, author_id: interaction.user.id, player_minecraft_nickname: player_nickname , donate: selected_donate, role_id: userData.get(interaction.user.id).roleId})
                     await ticketData.save()
 
         }else if(selected_donate=='server_money') {

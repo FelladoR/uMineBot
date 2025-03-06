@@ -11,6 +11,8 @@
   "description": "",
   "dependencies": {
     "@discordjs/ws": "^2.0.0",
+    "@napi-rs/canvas": "^0.1.67",
+    "axios": "^1.8.1",
     "discord.js": "^14.17.3",
     "dotenv": "^16.4.7",
     "moment": "^2.30.1",
