@@ -367,7 +367,7 @@ if(interaction.customId=='2') {
     const selectedOption = interaction.values[0]
     if(interaction.user.id =='614784992362496020' || interaction.user.id =='558945911980556288') {
         if(selectedOption =='accepted') {
-            ticketData = await Ticket.findOne({ _id: interaction.channel.id})
+            let ticketData = await Ticket.findOne({ _id: interaction.channel.id})
             const role_to_give = ticketData.role_id
             const author_id = ticketData.author_id
             const author = await interaction.guild.members.fetch(author_id)
