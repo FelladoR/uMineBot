@@ -6,6 +6,16 @@ const lg = new Logger('Bot')
 export default {
 	name: Events.InteractionCreate,
 	async execute(interaction) {
+        if (interaction.isAutocomplete()) {
+			try {
+				const command = interaction.client.commands.get(interaction.commandName);
+				await command.autocomplete(interaction);
+				return;
+			}
+			catch (error) {
+				lg.log(error);
+			}
+		}
 		if (interaction.isChatInputCommand()) {
 
 		const command = interaction.client.commands.get(interaction.commandName);

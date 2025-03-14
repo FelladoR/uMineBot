@@ -302,7 +302,7 @@ export default{
                 )
                 .setFooter({text: `З повагою, Адміністрація сервера. ❤️`})
                 await ticket_channel.send({content: "<@&986676059237916693>", embeds: [embed], components: admin_buttons})
-                ticketData =  await new Ticket({ _id: ticket_channel.id, author_id: interaction.user.id, player_minecraft_nickname: player_nickname ,donate: selected_donate })
+                const ticketData =  await new Ticket({ _id: ticket_channel.id, author_id: interaction.user.id, player_minecraft_nickname: player_nickname ,donate: selected_donate })
                 await ticketData.save()
             }
             
