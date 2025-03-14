@@ -283,7 +283,7 @@ export default{
                         { name: "💸 Вартість:", value: `${price} UAH`}
                     )
                     .setFooter({text: `З повагою, Адміністрація сервера. ❤️`})
-                    await ticket_channel.send({ embeds: [embed], components: admin_buttons})//content: "<@&986676059237916693>",
+                    await ticket_channel.send({ content: "<@&986676059237916693>", embeds: [embed], components: admin_buttons})
                     const ticketData =  await new Ticket({ _id: ticket_channel.id, author_id: interaction.user.id, player_minecraft_nickname: player_nickname , donate: selected_donate, role_id: userData.get(interaction.user.id).roleId})
                     await ticketData.save()
 
