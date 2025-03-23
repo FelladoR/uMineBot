@@ -1,6 +1,6 @@
 import { Events, EmbedBuilder, AttachmentBuilder } from 'discord.js';
 import 'dotenv/config';
-import Logger from '../utils/logs.js';
+import Logger from './utils/logs.js';
 import { createCanvas, loadImage } from '@napi-rs/canvas';
 
 const lg = new Logger('Bot');
