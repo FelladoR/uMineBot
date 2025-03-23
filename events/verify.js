@@ -35,8 +35,10 @@ const generateCaptchaImage = async (text) => {
         ctx.fillText(text[i], xStart + i * 50, height / 2);
     }
 
-    return canvas.toBuffer('image/png');
+    // Додаємо пустий об’єкт у toBuffer()
+    return canvas.toBuffer('image/png', {});
 };
+
 
 export default {
     name: Events.InteractionCreate,
