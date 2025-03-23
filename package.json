@@ -18,13 +18,14 @@
     "moment": "^2.30.1",
     "moment-duration-format": "^2.3.2",
     "mongo": "^0.1.0",
-    "mongoose": "^8.9.2"
+    "mongoose": "^8.9.2",
+    "sharp": "^0.33.5",
+    "svg-captcha": "^1.4.0"
   },
   "devDependencies": {
     "eslint": "^9.17.0"
   },
   "engines": {
-  "node": ">=20"
-}
-
+    "node": ">=20"
+  }
 }

@@ -1,44 +1,35 @@
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, Events } from 'discord.js';
 import dotenv from 'dotenv';
 import 'dotenv/config';
-import { createCanvas, loadImage } from '@napi-rs/canvas';
+import svgCaptcha from 'svg-captcha';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import sharp from 'sharp'; 
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 dotenv.config();
 const VERIFICATION_ROLE_ID = process.env.VERIFICATION_ROLE_ID;
 const UNVERIFED_ROLE_ID = process.env.UNVERIFED_ROLE_ID;
 const CAPTCHA_STORAGE = new Map();
 
-const generateCaptchaImage = async (text) => {
-    const width = 350, height = 100;
-    const canvas = createCanvas(width, height);
-    const ctx = canvas.getContext('2d');
-
-    ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(0, 0, width, height);
-
-    for (let i = 0; i < 7; i++) {
-        ctx.strokeStyle = `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.7)`;
-        ctx.lineWidth = Math.random() * 3 + 1;
-        ctx.beginPath();
-        ctx.moveTo(Math.random() * width, Math.random() * height);
-        ctx.lineTo(Math.random() * width, Math.random() * height);
-        ctx.stroke();
-    }
-
-    ctx.font = 'bold 50px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    const xStart = width / 2 - (text.length * 25);
-    for (let i = 0; i < text.length; i++) {
-        ctx.fillStyle = `rgb(${Math.random() * 200 + 55}, ${Math.random() * 200 + 55}, ${Math.random() * 200 + 55})`;
-        ctx.fillText(text[i], xStart + i * 50, height / 2);
-    }
-
-    // Додаємо пустий об’єкт у toBuffer()
-    return canvas.toBuffer('image/png', {});
+const generateCaptchaImage = () => {
+    const captcha = svgCaptcha.create({
+        size: 4,
+        noise: 3,
+        width: 350,
+        height: 100,
+        color: true,
+        background: '#1a1a1a',
+        fontSize: 70,
+        ignoreChars: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+-={}[]|;:"\'<>,.?/',
+    });
+    console.log('Generated captcha:', captcha);
+    return captcha;
 };
-
 
 export default {
     name: Events.InteractionCreate,
@@ -48,7 +39,7 @@ export default {
                 if (interaction.customId === 'verifyBtn') {
                     const verifyRole = interaction.guild.roles.cache.get(VERIFICATION_ROLE_ID);
                     if (!verifyRole) {
-                        return interaction.reply({ content: 'Роль верифікації не знайдена. Будь ласка, зв\`яжіться з адміністрацією.', ephemeral: true });
+                        return interaction.reply({ content: 'Роль верифікації не знайдена. Будь ласка, зв\'яжіться з адміністрацією.', ephemeral: true });
                     }
 
                     if (interaction.member.roles.cache.has(verifyRole.id)) {
@@ -58,12 +49,18 @@ export default {
                         });
                     }
 
-                    const captchaAnswer = Math.floor(Math.random() * 1000) + 1000;
-                    CAPTCHA_STORAGE.set(interaction.user.id, captchaAnswer);
-                    const captchaImage = await generateCaptchaImage(captchaAnswer.toString());
+                    const { text, data: captchaImage } = generateCaptchaImage();
+                    CAPTCHA_STORAGE.set(interaction.user.id, text);
+
+                    const filePath = `captcha_${interaction.user.id}.png`;
+                    await sharp(Buffer.from(captchaImage))
+                        .png()
+                        .toFile(filePath);
+
+                    console.log('Captcha image saved to:', filePath);
 
                     let enterBtnRow = new ActionRowBuilder().addComponents([
-                        new ButtonBuilder().setCustomId('openModal').setLabel('Enter').setStyle(3),
+                        new ButtonBuilder().setCustomId('openModal').setLabel('Ввести').setStyle(3),
                     ]);
 
                     await interaction.reply({
@@ -71,40 +68,50 @@ export default {
                             new EmbedBuilder()
                                 .setColor('#ffffff')
                                 .setTitle('Перевірка на робота')
-                                .setDescription(`Please press the **Enter** button below and enter the captcha code.`)
-                                .setFooter({ text: 'You have 60 seconds to complete the captcha' })
-                                .setImage('attachment://captcha.png'),
+                                .setDescription(`Будь ласка, натисніть кнопку **Ввести** нижче і введіть код капчі.`)
+                                .setFooter({ text: 'У вас є 60 секунд, щоб завершити капчу' })
+                                .setImage(`attachment://${filePath}`),
                         ],
                         components: [enterBtnRow],
-                        files: [{ attachment: captchaImage, name: 'captcha.png' }],
+                        files: [{ attachment: filePath, name: filePath }],
                         ephemeral: true,
                     });
-                }
 
-                if (interaction.customId === 'openModal') {
-                    const modal = new ModalBuilder()
-                        .setCustomId('captcha-modal')
-                        .setTitle('Verify Yourself')
-                        .addComponents([
-                            new ActionRowBuilder().addComponents(
-                                new TextInputBuilder()
-                                    .setCustomId('captcha-input')
-                                    .setLabel('Введіть капчу')
-                                    .setStyle(1)
-                                    .setMaxLength(4)
-                                    .setPlaceholder('e.g., 1234')
-                                    .setRequired(true),
-                            ),
-                        ]);
+                    setTimeout(() => {
+                        fs.unlinkSync(filePath);
+                    }, 5000);
 
-                    await interaction.showModal(modal);
+                    console.log('Captcha image sent in response');
                 }
+            }
+
+            if (interaction.customId === 'openModal') {
+                const modal = new ModalBuilder()
+                    .setCustomId('captcha-modal')
+                    .setTitle('Перевірте себе')
+                    .addComponents([
+                        new ActionRowBuilder().addComponents(
+                            new TextInputBuilder()
+                                .setCustomId('captcha-input')
+                                .setLabel('Введіть капчу')
+                                .setStyle(1)
+                                .setMaxLength(4)
+                                .setPlaceholder('наприклад, 1234')
+                                .setRequired(true),
+                        ),
+                    ]);
+
+                await interaction.showModal(modal);
+                console.log('Captcha input modal shown');
             }
 
             if (interaction.isModalSubmit()) {
                 if (interaction.customId === 'captcha-modal') {
                     const response = interaction.fields.getTextInputValue('captcha-input').trim();
-                    const correctAnswer = CAPTCHA_STORAGE.get(interaction.user.id)?.toString().trim();
+                    const correctAnswer = CAPTCHA_STORAGE.get(interaction.user.id)?.trim();
+                    console.log('User response:', response);
+                    console.log('Correct answer:', correctAnswer);
+
                     if (!correctAnswer) {
                         return interaction.reply({ content: 'Капча застарала. Будь ласка, спробуйте знову.', ephemeral: true });
                     }
@@ -134,6 +141,7 @@ export default {
                     }
 
                     await interaction.reply({ embeds: [captchaMessage], ephemeral: true });
+                    console.log('Verification response sent');
                 }
             }
         } catch (error) {
