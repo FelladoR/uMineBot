@@ -25,7 +25,7 @@ const generateCaptchaImage = async (text) => {
         ctx.stroke();
     }
 
-    ctx.font = 'bold 50px Arial';
+    ctx.font = 'bold 50px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
