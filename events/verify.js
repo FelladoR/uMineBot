@@ -1,4 +1,4 @@
-import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, Events } from 'discord.js';
+import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, Events, WebhookClient} from 'discord.js';
 import dotenv from 'dotenv';
 import 'dotenv/config';
 import svgCaptcha from 'svg-captcha';
@@ -7,6 +7,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import sharp from 'sharp'; 
 import { dirname } from 'path';
+import Logger from '../utils/logs.js'
+const lg = new Logger('Bot')
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -27,7 +29,7 @@ const generateCaptchaImage = () => {
         fontSize: 70,
         ignoreChars: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+-={}[]|;:"\'<>,.?/',
     });
-    console.log('Generated captcha:', captcha);
+
     return captcha;
 };
 
@@ -35,6 +37,9 @@ export default {
     name: Events.InteractionCreate,
     async execute(interaction) {
         try {
+
+            const webhook = new WebhookClient({ url: process.env.CAPTCHA_LOG_URL });
+
             if (interaction.isButton()) {
                 if (interaction.customId === 'verifyBtn') {
                     const verifyRole = interaction.guild.roles.cache.get(VERIFICATION_ROLE_ID);
@@ -57,7 +62,7 @@ export default {
                         .png()
                         .toFile(filePath);
 
-                    console.log('Captcha image saved to:', filePath);
+                        lg.info('Captcha image saved to:', filePath);
 
                     let enterBtnRow = new ActionRowBuilder().addComponents([
                         new ButtonBuilder().setCustomId('openModal').setLabel('Ввести').setStyle(3),
@@ -81,7 +86,7 @@ export default {
                         fs.unlinkSync(filePath);
                     }, 5000);
 
-                    console.log('Captcha image sent in response');
+                    lg.info('Captcha image sent in response');
                 }
             }
 
@@ -102,34 +107,42 @@ export default {
                     ]);
 
                 await interaction.showModal(modal);
-                console.log('Captcha input modal shown');
             }
 
             if (interaction.isModalSubmit()) {
                 if (interaction.customId === 'captcha-modal') {
                     const response = interaction.fields.getTextInputValue('captcha-input').trim();
                     const correctAnswer = CAPTCHA_STORAGE.get(interaction.user.id)?.trim();
-                    console.log('User response:', response);
-                    console.log('Correct answer:', correctAnswer);
 
                     if (!correctAnswer) {
                         return interaction.reply({ content: 'Капча застарала. Будь ласка, спробуйте знову.', ephemeral: true });
                     }
 
                     let captchaMessage;
+                    let captchaLog;
                     if (response === correctAnswer) {
                         captchaMessage = new EmbedBuilder()
                             .setColor('#ffffff')
                             .setTitle('🎉 Ви успішно пройшли верифікацію!')
                             .setDescription('Тепер ви маєте доступ до серверу!');
 
+                        captchaLog = new EmbedBuilder()
+                            .setColor(0x7dd321)
+                            .setTitle(`Користувач виконав капчу`)
+                            .addFields(
+                                { name: "Користувач:", value: `${interaction.user} | \`\`${interaction.user.id}\`\``, inline: false},
+                                { name: "Отримана відповідь", value: `**${response}**`}
+                                
+                            )
+
+
                         const verifyRole = interaction.guild.roles.cache.get(VERIFICATION_ROLE_ID);
                         const unverifedRole = interaction.guild.roles.cache.get(UNVERIFED_ROLE_ID);
                         if (unverifedRole) {
-                            await interaction.member.roles.remove(unverifedRole).catch(e => console.log(e));
+                            await interaction.member.roles.remove(unverifedRole).catch(e => lg.error(e));
                         }
                         if (verifyRole) {
-                            await interaction.member.roles.add(verifyRole).catch(e => console.log(e));
+                            await interaction.member.roles.add(verifyRole).catch(e => lg.error(e));
                         }
 
                         CAPTCHA_STORAGE.delete(interaction.user.id);
@@ -138,14 +151,30 @@ export default {
                             .setColor('#ff0000')
                             .setTitle(`💀 Ви провалили верифікацію`)
                             .setDescription('Ви ввели неправильну капчу... Будь ласка, спробуйте ще раз.');
+
+                        captchaLog = new EmbedBuilder()
+                            .setColor('#ff0000')
+                            .setTitle(`Користувач провалив капчу`)
+                            .addFields(
+                                { name: "Користувач:", value: `${interaction.user} | \`\`${interaction.user.id}\`\``, inline: false},
+                                { name: "Надіслана капча:", value: `**${correctAnswer}**`, inline: true},
+                                { name: "Отримана відповідь", value: `**${response}**`}
+                                
+                            )
                     }
 
-                    await interaction.reply({ embeds: [captchaMessage], ephemeral: true });
-                    console.log('Verification response sent');
+                    await Promise.all(
+                        [
+                            webhook.send({ embeds: [captchaLog] }).catch(error => { lg.error(error)}),
+                            interaction.reply({ embeds: [captchaMessage], ephemeral: true }).catch(error => { lg.error(error)}),
+                        ]
+
+                    )
+
                 }
             }
         } catch (error) {
-            console.error('Error in interaction create event:', error);
+            lg.error('Error in interaction create event:', error);
         }
     }
 };
