@@ -48,7 +48,7 @@ import {
                 )
                 .setThumbnail(interaction.guild.iconURL({ dynamic: true })) // Додає аватар гільдії
                 .setFooter({
-                    text: "Система верифікації",
+                    text: "З повагою, Адміністрація сервера. ❤️",
                     iconURL: interaction.guild.iconURL({ dynamic: true })
                 });
 
