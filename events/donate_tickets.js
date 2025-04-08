@@ -72,66 +72,11 @@ export default{
         }
     }
 
-    // async function send_message_about_cooldown(interaction, remaining) {
-    //     // Перевіряємо, чи вже була надіслана відповідь
-    //     if (!interaction.replied && !interaction.deferred) {
-    //         await interaction.reply({
-    //             content: `🕙 Зачекайте ${remaining} перш ніж використати знову.`,
-    //             ephemeral: true,
-    //         });
-    //     } else if (interaction.replied && interaction.deferred) {
-    //         // Якщо відповідь була відкладена (deferred), використовуємо followUp
-    //         await interaction.followUp({
-    //             content: `🕙 Зачекайте ${remaining} перш ніж використати знову.`,
-    //             ephemeral: true,
-    //         });
-    //     }
-    // }
-    
-
-    // async function check_modal_cooldown(interaction) {
-    //     const COOLDOWN_TIME = 10 * 60 * 1000; // 15 хвилин у мілісекундах
-    //     const user_id = interaction.user.id;
-    
-    //     if (cooldowns.has(user_id)) {
-    //         const lastUsed = cooldowns.get(user_id);
-    //         const now = Date.now();
-    
-    //         if (now - lastUsed < COOLDOWN_TIME) {
-    //             const remainingMilliseconds = COOLDOWN_TIME - (now - lastUsed);
-    //             const remainingMinutes = Math.floor(remainingMilliseconds / 60000); // кількість хвилин
-    //             const remainingSeconds = Math.floor((remainingMilliseconds % 60000) / 1000); // кількість секунд
-    
-    //             const remaining = remainingMinutes > 0 
-    //                 ? `${remainingMinutes} хвилин${remainingMinutes === 1 ? 'а' : 'и'} і ${remainingSeconds} секунд` 
-    //                 : `${remainingSeconds} секунд`;
-    
-    //             // Викликаємо функцію для надсилання повідомлення
-    //             await send_message_about_cooldown(interaction, remaining);
-    //             return true; // Повертаємо true, якщо взаємодія завершена
-    //         }
-    //     } else {
-    //         //if (interaction.user.id == '614784992362496020' || interaction.user.id == '558945911980556288') {
-    //         //    return false; // Якщо це адміністратор, пропускаємо охолодження
-    //         //}
-    
-    //         // Додаємо користувача до списку охолодження та ставимо таймер
-    //         cooldowns.set(user_id, Date.now());
-    //         setTimeout(() => cooldowns.delete(user_id), COOLDOWN_TIME);
-    //     }
-    
-    //     return false; // Повертаємо false, якщо користувач може продовжити
-    // }
-    
+   
     // Функція підтвердження придбання донату, після якої з'являється поле для вводу нікнейму
     async function accept() {
         if (interaction.customId ==='1') {
-    //         const isOnCooldown = await check_modal_cooldown(interaction);
 
-    //         if (isOnCooldown) {
-    //             await send_message_about_cooldown(interaction)
-    //             return; // Взаємодія завершена через охолодження
-    //         }
             const donateOptions = {
                 server_money: '**💰карбованці**',
                 king: '🤴𝐊𝐈𝐍𝐆',
@@ -140,7 +85,6 @@ export default{
                 knight: '⚔️𝐊𝐍𝐈𝐆𝐇𝐓',
                 ranger: '👒𝐑𝐀𝐍𝐆𝐄𝐑'
             };
-            // Кнопки 
 
             const confirm = new ButtonBuilder()
                 .setCustomId('confirm')
@@ -195,10 +139,9 @@ export default{
                 let row2 = new ActionRowBuilder().addComponents(server_money_emount)
                 modalMenu.addComponents(row1, row2)
                 await interaction.showModal(modalMenu)
-                // open_ticket(); // Викликаємо функцію для відкриття тікету
+ 
         }else if(interaction.user.selected_donate != 'server_money') {
-            // const isOnCooldown = await check_modal_cooldown(interaction);
-            // if (isOnCooldown) return; // Якщо взаємодія завершена, виходимо
+  
             const modalMenu = new ModalBuilder()
                 .setCustomId('modalMenu_title')
                 .setTitle('Введіть Ваш ігровий нікнейм.')
@@ -213,7 +156,7 @@ export default{
             let row1 = new ActionRowBuilder().addComponents(player_nickname_input)
             modalMenu.addComponents(row1)
             await interaction.showModal(modalMenu)
-            // open_ticket(); // Викликаємо функцію для відкриття тікету
+
         }
         }catch(error) {
             lg.error('Виникла помилка під час спроби виконання функції open_ticket'+error)
@@ -260,12 +203,12 @@ export default{
 
     async function send_embed_to_ticket(ticket_channel, player_nickname, server_money_emount) {
         const selected_donate = interaction.user.selected_donate;
-        let price; // Оголошуємо змінну price за межами умов
+        let price; 
 
         if (server_money_emount) {
-            price = server_money_emount / 2; // Якщо є server_money_emount, множимо його на 2
+            price = server_money_emount / 2; 
         } else {
-            price = userData.get(interaction.user.id).price; // Якщо немає server_money_emount, використовуємо ціни з userData
+            price = userData.get(interaction.user.id).price; 
         }
         
             const testdata = userData.get(interaction.user.id).roleId;
@@ -312,8 +255,8 @@ export default{
 if (interaction.customId === '1') {
     let roleId;
     let price;
-    const selectedValue = interaction.values[0]; // Отримуємо вибране значення
-    // Логіка для різних вибраних значень
+    const selectedValue = interaction.values[0]; 
+
     switch (selectedValue) {
         case 'server_money':
             roleId = null
@@ -363,7 +306,7 @@ if (interaction.customId === '1') {
 }
 
 if(interaction.customId=='2') {
-    //let roleId = data.roleId; // Отримуємо roleId з даних 
+
     const selectedOption = interaction.values[0]
     if(interaction.user.id =='614784992362496020' || interaction.user.id =='558945911980556288') {
         if(selectedOption =='accepted') {
@@ -399,8 +342,8 @@ if (interaction.customId === 'cancel_ticket') {
     
 }
 async function close_ticket() {
-    const channel = interaction.channel; // Канал, з якого будемо збирати повідомлення
-    const logChannel = interaction.client.channels.cache.get('1330540545382285383'); // Канал для логів
+    const channel = interaction.channel; 
+    const logChannel = interaction.client.channels.cache.get('1330540545382285383'); 
 
     if (!logChannel) {
         lg.warn('Канал логів не знайдено.');
@@ -412,7 +355,7 @@ async function close_ticket() {
     }
 
     try {
-        // Отримання всіх повідомлень з каналу
+       
         let messages = [];
         let lastMessageId = null;
 
@@ -426,13 +369,13 @@ async function close_ticket() {
         }
 
 
-        // Форматування повідомлень
+
         const data = messages
             .map(msg => `[${msg.createdAt.toISOString()}] ${msg.author.tag}: ${msg.content}`)
             .reverse()
             .join('\n');
 
-        // Збереження повідомлень у файл
+
         const filePath = './messages.txt';
         fs.writeFileSync(filePath, data);
         
@@ -445,9 +388,8 @@ async function close_ticket() {
             { name: 'Report ID', value: `\`\`${channel.id}\`\``, inline: true },
             { name: 'Закрив', value: `${interaction.user.username} || \`\`${interaction.user.id}\`\``, inline: false },
         )
-        // Відправка файлу в канал логів
+
         await logChannel.send({
-            ///content: 'Ось збережені повідомлення:',
             embeds: [ExampleEmbed],
             files: [filePath],
         });
@@ -468,7 +410,7 @@ const cancel_ticket = new ButtonBuilder()
     .setLabel('Скасувати заявку')
     .setStyle(ButtonStyle.Danger);
 
-const menu = new StringSelectMenuBuilder() // Кнопки для адміна в тікеті
+const menu = new StringSelectMenuBuilder() 
     .setCustomId('2')
     .setPlaceholder('Панель адміністрації')
 
@@ -486,9 +428,8 @@ const menu = new StringSelectMenuBuilder() // Кнопки для адміна �
             .setValue('declined')
     );
 
-// Перевірка: кожен ActionRow має бути правильно доданий
-const menuRow = new ActionRowBuilder().addComponents(menu);  // Перший ActionRow з меню
-const cancelRow = new ActionRowBuilder().addComponents(cancel_ticket);  // Другий ActionRow з кнопкою скасування
+const menuRow = new ActionRowBuilder().addComponents(menu); 
+const cancelRow = new ActionRowBuilder().addComponents(cancel_ticket);  
 
-// Сформуйте масив з двох ActionRow
+
 const admin_buttons = [menuRow, cancelRow];

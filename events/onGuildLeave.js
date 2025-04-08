@@ -19,7 +19,7 @@ export default{
     
             await guildData.deleteOne();
 
-            // Виклик функції для надсилання логів
+
             await sendDevLogs(guild, client);
         } catch (error) {
             lg.error('Помилка у GuildDelete:', error);
