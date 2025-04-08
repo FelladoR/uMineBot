@@ -32,23 +32,22 @@ import {
 		} else {
 			let embed = new EmbedBuilder()
                 .setColor("#9400FF") // Темно-сірий фон для кращого вигляду
-                .setTitle(`👋 Раді Вас бачити на ${interaction.guild.name}!`)
+	        .setAuthor({ name: 'ᴜᴍɪɴᴇ ʀᴇʙᴏʀɴ', iconURL: 'https://i.imgur.com/dEpXhnr.jpeg' })
+                .setTitle(`👋 Ласкаво просимо на сервер!`)
                 .setDescription(
-                    `Щоб отримати доступ до серверу, будь ласка, підтвердіть, що Ви не бот, виконавши просту капчу.`
+                    
+                    "Щоб отримати доступ до серверу, будь ласка,\n" +
+                    "підтвердіть, що Ви не бот, виконавши просту капчу.\n\n" +
+                    "\n" +
+                    "⁉️ **Для верифікації потрібно:**\n" +
+                    "\n```" +
+                    "１. Натисніть кнопку “✔️ Верифікація”;\n" +
+                    "２. Введіть капчу у поле, що з’явиться;\n" +
+                    "３. Отримайте доступ до каналів.\n" +
+                    "```\n\n"
                 )
-                .addFields(
-                    {
-                        name: "✔️ Для верифікації потрібно:",
-                        value: `>>> １. Натисніть кнопку "**Верифікація**;"  
-                                ２. Введіть капчу у поле, що з’явиться;  
-                                ３. Отримайте доступ до каналів.`,
-                        inline: true
-                    }
-                )
-                .setThumbnail(interaction.guild.iconURL({ dynamic: true })) // Додає аватар гільдії
                 .setFooter({
                     text: "З повагою, Адміністрація сервера. ❤️",
-                    iconURL: interaction.guild.iconURL({ dynamic: true })
                 });
 
             let btnRow = new ActionRowBuilder().addComponents(
