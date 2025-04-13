@@ -29,6 +29,7 @@ const cooldowns = new Map();
                 .setPlaceholder('Оберіть послугу, яку бажаєте придбати.')
                 .addOptions(
                     new StringSelectMenuOptionBuilder().setLabel('💰 Карбованці').setValue('server_money'),
+                    new StringSelectMenuOptionBuilder().setLabel('🎁Донат-кейс').setValue('donate_case'),
                     new StringSelectMenuOptionBuilder().setLabel('🤴 𝐊𝐈𝐍𝐆').setValue('king'),
                     new StringSelectMenuOptionBuilder().setLabel('🎩 𝐋𝐎𝐑𝐃').setValue('lord'),
                     new StringSelectMenuOptionBuilder().setLabel('🔱 𝐇𝐄𝐑𝐎').setValue('hero'),
@@ -51,6 +52,7 @@ const cooldowns = new Map();
                     "💸 **Вартість за послуги:**\n" +
                     "\n```" +
                     "💰 2 Карбованці - 1 UAH;\n" +
+                    "🎁 Донат-кейс - 169 UAH;\n" +
                     "🤴 𝐊𝐈𝐍𝐆 - 449 UAH;\n" +
                     "🎩 𝐋𝐎𝐑𝐃 - 279 UAH;\n" +
                     "🔱 𝐇𝐄𝐑𝐎 - 169 UAH;\n" +

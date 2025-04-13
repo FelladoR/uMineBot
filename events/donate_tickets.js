@@ -78,7 +78,8 @@ export default{
         if (interaction.customId ==='1') {
 
             const donateOptions = {
-                server_money: '**💰карбованці**',
+                donate_case: '**🎁 Донат-кейс**',
+                server_money: '**💰Карбованці**',
                 king: '🤴𝐊𝐈𝐍𝐆',
                 lord: '🎩𝐋𝐎𝐑𝐃',
                 hero: '🔱𝐇𝐄𝐑𝐎',
@@ -202,7 +203,8 @@ export default{
     }
 
     async function send_embed_to_ticket(ticket_channel, player_nickname, server_money_emount) {
-        const selected_donate = interaction.user.selected_donate;
+        let selected_donate = interaction.user.selected_donate;
+        lg.debug(selected_donate)
         let price; 
 
         if (server_money_emount) {
@@ -211,8 +213,8 @@ export default{
             price = userData.get(interaction.user.id).price; 
         }
         
-            const testdata = userData.get(interaction.user.id).roleId;
         if(selected_donate!="server_money") {
+            if(selected_donate=='donate_case') selected_donate ='донат-кейс'
             const embed = new EmbedBuilder()
                     .setColor(0x941BF9)
                     .setAuthor({name: 'ᴜᴍɪɴᴇ ʀᴇʙᴏʀɴ', iconURL: 'https://i.imgur.com/dEpXhnr.jpeg'})
@@ -226,7 +228,7 @@ export default{
                         { name: "💸 Вартість:", value: `${price} UAH`}
                     )
                     .setFooter({text: `З повагою, Адміністрація сервера. ❤️`})
-                    await ticket_channel.send({ content: "<@&986676059237916693>", embeds: [embed], components: admin_buttons})
+                    await ticket_channel.send({ /*content: "<@&986676059237916693>", */embeds: [embed], components: admin_buttons})
                     const ticketData =  await new Ticket({ _id: ticket_channel.id, author_id: interaction.user.id, player_minecraft_nickname: player_nickname , donate: selected_donate, role_id: userData.get(interaction.user.id).roleId})
                     await ticketData.save()
 
@@ -260,6 +262,11 @@ if (interaction.customId === '1') {
     switch (selectedValue) {
         case 'server_money':
             roleId = null
+            accept()
+            break;
+        case 'donate_case':
+            roleId = null
+            price = "169"
             accept()
             break;
         case 'king':
